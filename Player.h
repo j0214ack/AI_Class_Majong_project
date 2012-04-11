@@ -15,11 +15,13 @@ class Player
 	//-------------------- Public --------------------//
 	public :
 
-		Player( int id, const List<Majong::Card>& hand );
+		Player( int id );
 
 		ACTION getDecision ( const Game & ) const;
 
 		Majong::Card doAction ( ACTION );
+
+      void giveHand(const List<Majong::Card>& hand);
 
 
 
