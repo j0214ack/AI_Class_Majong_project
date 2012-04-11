@@ -11,63 +11,51 @@
 
 #include "macro.h"
 
+
 class Game
 {
 
-	//-------------------- Public --------------------//
-	public :
-	
-		Game (int playerNum);
-	
-		Majong::Card draw (int id);
+//-------------------- Public --------------------//
+   enum EndOfGame { ONE_WINS_ONE, THREE_WIN_ONE, ONE_WINS_ALL, NO_WIN, NOT_YET }
+public :
 
-		void run ();
+   Game (int playerNum);
 
-      Majong::Card getUsableCard() const;
+   Majong::Card draw (int id);
 
-      int getCurrentPlayerId() const;
+   void run ();
 
-	//-------------------- Private --------------------//
-	private :
-		
-		void refreshUsableCard ();
+   Majong::Card getUsableCard() const;
 
-		void oneTurn ();
+   int getCurrentPlayerId() const;
 
-		void show ();
+//-------------------- Private --------------------//
+private :
+   
+   void updateUsableCard(Majong::Card newCard, int playerId);
 
-		void gameOver ();
+   void oneRound ();
+   void oneGame ();
+   EndOfGame oneTurn ();
 
-		void initailizeCards ();
+   void show ();
 
-      Majong::Card drawCardFromWall();
+   void gameOver ();
 
-      void updateUsableCard(Majong::Card newCard, int playerId);
+   void initailizeCards ();
 
-      //Members
-      int playerNum_;
-		List<Player> players_;
-		Majong::Card usableCard;
-	 	List<Majong::Card> seaCard,
-					 	      wallCard;
-      int currentPlayerId_;
+   Majong::Card drawCardFromWall();
+
+   //Members
+   int dealerId_;
+   int playerNum_;
+   int currentPlayerId_;
+   int loserId_;
+   int winnerId_;
+   List<Player> players_;
+   Majong::Card usableCard;
+   List<Majong::Card> seaCard,
+                     wallCard;
 
 };
 
-inline void
-Game::run ()
-{
-
-	List<ACTION> legalAction_p1( player_[0].getLegalAction() ),
-	             legalAction_p2( player_[1].getLegalAction() ),
-	             legalAction_p3( player_[2].getLegalAction() ),
-	             legalAction_p4( player_[3].getLegalAction() );
-
-	List<Player> doOrder( sort( legalAction_p1,
-								legalAction_p2,
-								legalAction_p2,
-								legalAction_p4 ) );
-
-	
-
-}

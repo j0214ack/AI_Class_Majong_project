@@ -7,7 +7,7 @@
 ** Copyright:
 ****************************************************/
 
-enum ACTION { ACTION_EAT, ACTION_BON, ACTION_GUN, ACTION_WIN, ACTION_DRAW };
+enum ACTION { ACTION_EAT, ACTION_BON, ACTION_GUN, ACTION_WIN, ACTION_DRAW, ACTION_PASS };
 
 class Player
 {
