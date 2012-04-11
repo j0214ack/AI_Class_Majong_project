@@ -17,22 +17,24 @@ static bool compareActions (Action i, Action j){
 
 
 Game::Game(int playerNum) : dealerId_(0), playerNum_(playerNum), currentPlayerId_(0),
-                            loserId_(-1), winnerId_(-1), players_(), seaCards_(), wallCards_()
+                            loserId_(-1), winnerId_(-1), players_(), usablecard_(Majong::EMPTY_CARD),
+                            seaCards_(), wallCards_()
 {
-   initializeCards();
-   usableCard = Majong::EMPTY_CARD;
    for(int i =0;i<playerNum;i++){
-      List<Majong::Card> hand();
-      for(int j =0;j<16;j++){
-         hand.pushBack(draw(i));
-      }
-      players.insert(i,Player(i,hand));
+      players_.insert(i,Player(i));
    }
 }
 
 Majong::Card
-Game::draw (int id){
-   drawnCard = wallCards_.remove(randGen(players_.size()));
+Game::drawFromHead (int id){
+   drawnCard = wallCards_.popFront();
+   drawnCard.belong = id;
+   return drawnCard;
+}
+
+Majong::Card
+Game::drawFromTail (int id){
+   drawnCard = wallCards_.popBack();
    drawnCard.belong = id;
    return drawnCard;
 }
@@ -50,16 +52,13 @@ Game::getCurrentPlayerId() const {
 }
 
 //-------------------- Private --------------------//
-void
-Game::refreshUsableCard (){
-}
-
 void//one round means every player had been the dealer once
 Game::oneRound(){
 }
 
 void
 Game::oneGame(){
+   initializeCards();
    updateUsableCard(players_[currentPlayerId_].doAction(ACTION_DRAW),0);
    EndOfGame endStatus = oneTurn();
    while ( endStatus == NOT_YET ){
@@ -138,6 +137,17 @@ Game::oneTurn(){
 }
 
 void
+Game::givePlayersHands(){
+   for(int i =0;i<playerNum;i++){
+      List<Majong::Card> hand();
+      for(int j =0;j<16;j++){
+         hand.pushBack(drawFromHead(i));
+      }
+      players_[i].giveHand(hand);
+   }
+}
+
+void
 Game::show (){
 }
 
@@ -155,22 +165,27 @@ Game::updateUsableCard(Majong::Card newCard,int playerId){
 void
 Game::initailizeCards(){
    //feed {x,y,z} as parameter only available with c++0x
+   List<Majond::Card> newCards();
    for(int i =0;i<4;i++){
       for (int j=1;j<=9;j++){
-         wallCards_.pushBack({TYPE_MILLION,j,-1});
-         wallCards_.pushBack({TYPE_CIRCLE,j,-1});
-         wallCards_.pushBack({TYPE_STRING,j,-1});
+         newCards.pushBack({TYPE_MILLION,j,-1});
+         newCards.pushBack({TYPE_CIRCLE,j,-1});
+         newCards.pushBack({TYPE_STRING,j,-1});
       }
-      wallCards_.pushBack({TYPE_N,0,-1});
-      wallCards_.pushBack({TYPE_S,0,-1});
-      wallCards_.pushBack({TYPE_E,0,-1});
-      wallCards_.pushBack({TYPE_W,0,-1});
-      wallCards_.pushBack({TYPE_M,0,-1});
-      wallCards_.pushBack({TYPE_RICH,0,-1});
-      wallCards_.pushBack({TYPE_WHITE,0,-1});
-      for(int j=1;j<=8;j++){
-         wallCards_.pushBack({TYPE_FLOWER,j,-1});
-      }
+      newCards.pushBack({TYPE_N,0,-1});
+      newCards.pushBack({TYPE_S,0,-1});
+      newCards.pushBack({TYPE_E,0,-1});
+      newCards.pushBack({TYPE_W,0,-1});
+      newCards.pushBack({TYPE_M,0,-1});
+      newCards.pushBack({TYPE_RICH,0,-1});
+      newCards.pushBack({TYPE_WHITE,0,-1});
    }
+   for(int j=1;j<=8;j++){
+      newCards.pushBack({TYPE_FLOWER,j,-1});
+   }
+   while(newCards.size() > 0 ){
+      wallCards_.pushBack(newCards.remove(randGen(newCards.size())));
+   }
+
 }
 
