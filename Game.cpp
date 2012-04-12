@@ -17,8 +17,8 @@ static bool compareActions (Action i, Action j){
 
 
 Game::Game(int playerNum) : dealerId_(0), playerNum_(playerNum), currentPlayerId_(0),
-                            loserId_(-1), winnerId_(-1), players_(), usablecard_(Majong::EMPTY_CARD),
-                            seaCards_(), wallCards_()
+                            loserId_(-1), winnerId_(-1), lianChuangNum_, players_(), 
+                            usablecard_(Majong::EMPTY_CARD), seaCards_(), wallCards_()
 {
    for(int i =0;i<playerNum;i++){
       players_.insert(i,Player(i));
@@ -41,33 +41,53 @@ Game::drawFromTail (int id){
 
 void
 Game::run() {
+   for(int i=0;i<4;i++){
+      oneRound();
+   }
+   gameOver();
 }
 
 Majong::Card
 Game::getUsableCard() const {
+   return usableCard_;
 }
 
 int
 Game::getCurrentPlayerId() const {
+   return currentPlayeyId_;
+}
+
+int
+Game::getLianChuangNum() const {
+   return lianChuangNum_;
 }
 
 //-------------------- Private --------------------//
 void//one round means every player had been the dealer once
 Game::oneRound(){
+   for(int i=0;i<4;){
+      if (oneGame()){
+         i++;
+         lianChuangNum = 0;
+         if (dealerId_ == playerNum_ - 1){ dealerId_ = 0; }
+         else dealerId_ += 1;
+      }
+   }
+   //when different orientation is implemented, should set orietation here
+   //and also in oneGame(); TODO
 }
 
-void
+bool//return true if dealer changed
 Game::oneGame(){
    initializeCards();
+   currentPlayerId_ = dealerId_;
+   winnerId_ = -1; loserId_ = -1;
    updateUsableCard(players_[currentPlayerId_].doAction(ACTION_DRAW),0);
    EndOfGame endStatus = oneTurn();
    while ( endStatus == NOT_YET ){
       oneTurn();
    }
-   if ( endStatus != NO_WIN && (winnerId_ != dealerId_) ){
-      if (dealerId_ == playerNum_ - 1){ dealerId_ = 0; }
-      else dealerId_ += 1;
-   }
+   //below should do the winning counting TODO
    switch(endStatus){
       case ONE_WINS_ONE:
          break;
@@ -78,6 +98,11 @@ Game::oneGame(){
       case NO_WIN:
          break;
    }
+   if ( endStatus != NO_WIN && (winnerId_ != dealerId_) ){
+      lianChuangNum_++;
+      return true;
+   }
+   else return false;
 }
 
 EndOfGame
@@ -152,7 +177,11 @@ Game::show (){
 }
 
 void
-Game::gameOver (){
+Game::gameOver (){//TODO
+/*
+   End of whole Majong Game,
+   shall we show statistics of each player?
+*/
 }
 
 void
@@ -186,6 +215,5 @@ Game::initailizeCards(){
    while(newCards.size() > 0 ){
       wallCards_.pushBack(newCards.remove(randGen(newCards.size())));
    }
-
 }
 

@@ -28,6 +28,7 @@ public :
    Majong::Card getUsableCard() const;
 
    int getCurrentPlayerId() const;
+   int getLianChuangNum() const;
 
 //-------------------- Private --------------------//
 private :
@@ -35,7 +36,7 @@ private :
    void updateUsableCard(Majong::Card newCard, int playerId);
 
    void oneRound ();
-   void oneGame ();
+   bool oneGame ();
    EndOfGame oneTurn ();
 
    void show ();
@@ -52,10 +53,11 @@ private :
    int currentPlayerId_;
    int loserId_;
    int winnerId_;
+   int lianChuangNum_;
    List<Player> players_;
-   Majong::Card usableCard;
-   List<Majong::Card> seaCard,
-                     wallCard;
+   Majong::Card usableCard_;
+   List<Majong::Card> seaCard_,
+                     wallCard_;
 
 };
 
