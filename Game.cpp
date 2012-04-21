@@ -16,13 +16,14 @@ static bool compareActions (Action i, Action j){
 }
 
 
-Game::Game(int playerNum) : dealerId_(0), playerNum_(playerNum), currentPlayerId_(0),
+Game::Game(int playerNum,const Display& d) : dealerId_(0), playerNum_(playerNum), currentPlayerId_(0),
                             loserId_(-1), winnerId_(-1), lianChuangNum_, players_(), 
-                            usablecard_(Majong::EMPTY_CARD), seaCards_(), wallCards_()
+                            usablecard_(Majong::EMPTY_CARD), seaCards_(), wallCards_(), display_(d)
 {
    for(int i =0;i<playerNum;i++){
       players_.insert(i,Player(i));
    }
+   //should init display_ right? TODO
 }
 
 Majong::Card
@@ -58,10 +59,22 @@ Game::getCurrentPlayerId() const {
 }
 
 int
+Game::howManyPlayers() const {
+   return playerNum_;
+}
+
+int
 Game::getLianChuangNum() const {
    return lianChuangNum_;
 }
-
+List<Majong::Card> 
+Game::getSeaCards_() const {
+   return seaCards_;
+}
+List<Majong::Card>
+Game::getWallCards_() const{
+   return wallCards_;
+}
 //-------------------- Private --------------------//
 void//one round means every player had been the dealer once
 Game::oneRound(){
@@ -80,9 +93,10 @@ Game::oneRound(){
 bool//return true if dealer changed
 Game::oneGame(){
    initializeCards();
+   updateDisplay();
    currentPlayerId_ = dealerId_;
    winnerId_ = -1; loserId_ = -1;
-   updateUsableCard(players_[currentPlayerId_].doAction(ACTION_DRAW),0);
+   updateUsableCard(players_[currentPlayerId_].doAction(ACTION_DRAW));
    EndOfGame endStatus = oneTurn();
    while ( endStatus == NOT_YET ){
       oneTurn();
@@ -90,19 +104,28 @@ Game::oneGame(){
    //below should do the winning counting TODO
    switch(endStatus){
       case ONE_WINS_ONE:
-         break;
-      case THREE_WIN_ONE:
+         players_[winnerId_].win();
+         players_[loserId_].lose();
          break;
       case ONE_WINS_ALL:
+         for(int i=0;i<playerNum_;i++){
+            if (playerNum_ == winnerId_){
+               continue;
+            }
+            players_[winnerId_].win();
+            players_[i].lose();
+         }
          break;
       case NO_WIN:
          break;
    }
    if ( endStatus != NO_WIN && (winnerId_ != dealerId_) ){
-      lianChuangNum_++;
       return true;
    }
-   else return false;
+   else {
+      lianChuangNum_++;
+      return false;
+   }
 }
 
 EndOfGame
@@ -110,7 +133,7 @@ Game::oneTurn(){
    if ( usableCard_ == WIN_CARD ){
       return ONE_WINS_ALL;
    }
-   if ( wallCard_.size() <= 16 ){
+   if ( wallCards_.size() <= 16 ){
       winnerId_ = -1;
       return NO_WIN;
    }
@@ -126,7 +149,8 @@ Game::oneTurn(){
       priorityAction = max_element(sortedAction.begin(),sortedAction.end(),compareActions);
       for(int i=0;i<playerNum_;i++){
          if (playerDecisions[i] == priorityAction ){
-            updateUsableCard(players_[i].doAction(priorityAction),i);
+            currentPlayerId_ = i
+            updateUsableCard(players_[i].doAction(priorityAction));
             if ( usableCard_ == WIN_CARD ){
                return ONE_WINS_ALL;
             }
@@ -142,9 +166,6 @@ Game::oneTurn(){
                return ONE_WINS_ONE;
             }
          }
-      }
-      else if ( winCount == 3){
-         return THREE_WIN_ONE;
       }
       else {
          for(winnerId_ = usableCard_.belong;winnerId<playerNum_;winnerId++){
@@ -173,10 +194,6 @@ Game::givePlayersHands(){
 }
 
 void
-Game::show (){
-}
-
-void
 Game::gameOver (){//TODO
 /*
    End of whole Majong Game,
@@ -185,10 +202,10 @@ Game::gameOver (){//TODO
 }
 
 void
-Game::updateUsableCard(Majong::Card newCard,int playerId){
-   currentPlayerId_ = playerId;
+Game::updateUsableCard(Majong::Card newCard){
    usableCard_ = newCard;
-   seaCard_.pushBack(newCard);
+   seaCards_.pushBack(newCard);
+   updateDisplay();
 }
 
 void
@@ -217,3 +234,7 @@ Game::initailizeCards(){
    }
 }
 
+void
+Game::updateDisplay(){
+   display_.update((*this),players_);
+}

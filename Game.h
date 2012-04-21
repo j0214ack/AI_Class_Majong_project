@@ -6,20 +6,16 @@
 ** Last Modified: 
 ** Copyright: 
 ****************************************************/
-
-#define PLAYER_NUM 2
-
 #include "macro.h"
-
 
 class Game
 {
 
 //-------------------- Public --------------------//
-   enum EndOfGame { ONE_WINS_ONE, THREE_WIN_ONE, ONE_WINS_ALL, NO_WIN, NOT_YET }
+   enum EndOfGame { ONE_WINS_ONE, ONE_WINS_ALL, NO_WIN, NOT_YET }
 public :
 
-   Game (int playerNum);
+   Game (int playerNum,const Display& d);
 
    Majong::Card draw (int id);
 
@@ -28,24 +24,28 @@ public :
    Majong::Card getUsableCard() const;
 
    int getCurrentPlayerId() const;
+   int howManyPlayers() const;
    int getLianChuangNum() const;
+
+   List<Majong::Card> getSeaCards_() const;
+   List<Majong::Card> getWallCards_() const;
 
 //-------------------- Private --------------------//
 private :
    
-   void updateUsableCard(Majong::Card newCard, int playerId);
+   void updateUsableCard(Majong::Card newCard);
 
    void oneRound ();
    bool oneGame ();
    EndOfGame oneTurn ();
-
-   void show ();
 
    void gameOver ();
 
    void initailizeCards ();
 
    Majong::Card drawCardFromWall();
+
+   void updateDisplay();
 
    //Members
    int dealerId_;
@@ -56,8 +56,9 @@ private :
    int lianChuangNum_;
    List<Player> players_;
    Majong::Card usableCard_;
-   List<Majong::Card> seaCard_,
-                     wallCard_;
+   List<Majong::Card> seaCards_,
+                     wallCards_;
+   Display display_;
 
 };
 
