@@ -6,18 +6,31 @@
 ** Last Modified: 
 ** Copyright: 
 ****************************************************/
+#ifndef GAME_H 
+#define GAME_H
 #include "macro.h"
+#include "List.h"
+#include "Grid.h"
+#include "Display.h"
+#include "Player.h"
 
+class Display;
+class Player;
+
+
+using user::List;
+
+enum EndOfGame { ONE_WINS_ONE, ONE_WINS_ALL, NO_WIN, NOT_YET };
 class Game
 {
 
 //-------------------- Public --------------------//
-   enum EndOfGame { ONE_WINS_ONE, ONE_WINS_ALL, NO_WIN, NOT_YET }
-public :
+public:
 
    Game (int playerNum,const Display& d);
 
-   Majong::Card draw (int id);
+   Majong::Card drawFromHead (int id);
+   Majong::Card drawFromTail (int id);
 
    void run ();
 
@@ -27,13 +40,15 @@ public :
    int howManyPlayers() const;
    int getLianChuangNum() const;
 
-   List<Majong::Card> getSeaCards_() const;
-   List<Majong::Card> getWallCards_() const;
+   List<Majong::Card> getSeaCards() const;
+   List<Majong::Card> getWallCards() const;
 
 //-------------------- Private --------------------//
-private :
+private:
    
    void updateUsableCard(Majong::Card newCard);
+
+   void givePlayersHands();
 
    void oneRound ();
    bool oneGame ();
@@ -41,7 +56,7 @@ private :
 
    void gameOver ();
 
-   void initailizeCards ();
+   void initializeCards ();
 
    Majong::Card drawCardFromWall();
 
@@ -61,4 +76,5 @@ private :
    Display display_;
 
 };
+#endif
 

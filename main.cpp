@@ -16,7 +16,7 @@ int main( int argc, char *argv[] )
 {
 
 START_EXCEPTION
-   Display display();
+   Display display;
 	Game game(2,display);
 	game.run();
 

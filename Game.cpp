@@ -4,21 +4,26 @@
 #include <vector>
 
 using namespace std;
+using user::List;
 
-static UnsignRnNumGen randGen();
+static UnsignRnNumGen randGen;
 
 //return true if i<j
-static bool compareActions (Action i, Action j){
-   if (j == ACTION_BON || j == ACTION_GUN){ return true; }
-   else if (i == ACTION_BON || i == ACTION_GUN){ return false; }
-   else if ( (j == ACTION_EAT || j == ACTION_DRAW) ) { return true; } 
+static bool compareActions (ACTION i, ACTION j){
+   if (j == ACTION_BON || j == ACTION_LIGHT_GUN){ return true; }
+   else if (i == ACTION_BON || i == ACTION_LIGHT_GUN){ return false; }
+   else if ( (j == ACTION_EAT_FIRST || j == ACTION_EAT_MIDDLE ||
+              j == ACTION_EAT_LAST  || j == ACTION_DRAW) ) { return true; } 
    else return false;
 }
 
 
-Game::Game(int playerNum,const Display& d) : dealerId_(0), playerNum_(playerNum), currentPlayerId_(0),
-                            loserId_(-1), winnerId_(-1), lianChuangNum_, players_(), 
-                            usablecard_(Majong::EMPTY_CARD), seaCards_(), wallCards_(), display_(d)
+Game::Game(int playerNum,const Display& d) : 
+                            dealerId_(0), playerNum_(playerNum), 
+                            currentPlayerId_(0), loserId_(-1), winnerId_(-1), 
+                            lianChuangNum_(0), players_(), 
+                            usableCard_(Majong::EMPTY_CARD), seaCards_(), 
+                            wallCards_(), display_(d)
 {
    for(int i =0;i<playerNum;i++){
       players_.insert(i,Player(i));
@@ -28,14 +33,14 @@ Game::Game(int playerNum,const Display& d) : dealerId_(0), playerNum_(playerNum)
 
 Majong::Card
 Game::drawFromHead (int id){
-   drawnCard = wallCards_.popFront();
+   Majong::Card drawnCard = wallCards_.popFront();
    drawnCard.belong = id;
    return drawnCard;
 }
 
 Majong::Card
 Game::drawFromTail (int id){
-   drawnCard = wallCards_.popBack();
+   Majong::Card drawnCard = wallCards_.popBack();
    drawnCard.belong = id;
    return drawnCard;
 }
@@ -55,7 +60,7 @@ Game::getUsableCard() const {
 
 int
 Game::getCurrentPlayerId() const {
-   return currentPlayeyId_;
+   return currentPlayerId_;
 }
 
 int
@@ -68,11 +73,11 @@ Game::getLianChuangNum() const {
    return lianChuangNum_;
 }
 List<Majong::Card> 
-Game::getSeaCards_() const {
+Game::getSeaCards() const {
    return seaCards_;
 }
 List<Majong::Card>
-Game::getWallCards_() const{
+Game::getWallCards() const{
    return wallCards_;
 }
 //-------------------- Private --------------------//
@@ -81,7 +86,7 @@ Game::oneRound(){
    for(int i=0;i<4;){
       if (oneGame()){
          i++;
-         lianChuangNum = 0;
+         lianChuangNum_ = 0;
          if (dealerId_ == playerNum_ - 1){ dealerId_ = 0; }
          else dealerId_ += 1;
       }
@@ -93,10 +98,12 @@ Game::oneRound(){
 bool//return true if dealer changed
 Game::oneGame(){
    initializeCards();
-   updateDisplay();
+   givePlayersHands();
    currentPlayerId_ = dealerId_;
    winnerId_ = -1; loserId_ = -1;
+   updateDisplay();
    updateUsableCard(players_[currentPlayerId_].doAction(ACTION_DRAW));
+   updateDisplay();
    EndOfGame endStatus = oneTurn();
    while ( endStatus == NOT_YET ){
       oneTurn();
@@ -140,21 +147,21 @@ Game::oneTurn(){
    vector<ACTION> playerDecisions(playerNum_);
    int winCount = 0;
    for(int i =0;i<playerNum_;i++){
-      playerDecisions[i] = players_.getDecision((*this));
+      playerDecisions[i] = players_[i].getDecision((*this));
       if (playerDecisions[i] == ACTION_WIN){
          winCount++;
       }
    }
    if (winCount < 1){
-      priorityAction = max_element(sortedAction.begin(),sortedAction.end(),compareActions);
+      ACTION priorityAction = max_element(playerDecisions.begin(),playerDecisions.end(),compareActions);
       for(int i=0;i<playerNum_;i++){
          if (playerDecisions[i] == priorityAction ){
-            currentPlayerId_ = i
+            currentPlayerId_ = i;
             updateUsableCard(players_[i].doAction(priorityAction));
             if ( usableCard_ == WIN_CARD ){
                return ONE_WINS_ALL;
             }
-            else return NOT_YET
+            else return NOT_YET;
          }
       }
    }
@@ -168,14 +175,14 @@ Game::oneTurn(){
          }
       }
       else {
-         for(winnerId_ = usableCard_.belong;winnerId<playerNum_;winnerId++){
-            if (playerDecicsions[winnerId_] == ACTION_WIN){
-               return ONE_WINS_ONE
+         for(winnerId_ = usableCard_.belong;winnerId_<playerNum_;winnerId_++){
+            if (playerDecisions[winnerId_] == ACTION_WIN){
+               return ONE_WINS_ONE;
             }
          }
-         for(winnerId_ = 0;winnerId<usableCard_.belong;winnerId++){
-            if (playerDecicsions[winnerId_] == ACTION_WIN){
-               return ONE_WINS_ONE
+         for(winnerId_ = 0;winnerId_<usableCard_.belong;winnerId_++){
+            if (playerDecisions[winnerId_] == ACTION_WIN){
+               return ONE_WINS_ONE;
             }
          }
       }
@@ -184,8 +191,8 @@ Game::oneTurn(){
 
 void
 Game::givePlayersHands(){
-   for(int i =0;i<playerNum;i++){
-      List<Majong::Card> hand();
+   for(int i =0;i<playerNum_;i++){
+      List<Majong::Card> hand;
       for(int j =0;j<16;j++){
          hand.pushBack(drawFromHead(i));
       }
@@ -209,9 +216,9 @@ Game::updateUsableCard(Majong::Card newCard){
 }
 
 void
-Game::initailizeCards(){
+Game::initializeCards(){
    //feed {x,y,z} as parameter only available with c++0x
-   List<Majond::Card> newCards();
+   List<Majong::Card> newCards;
    for(int i =0;i<4;i++){
       for (int j=1;j<=9;j++){
          newCards.pushBack({TYPE_MILLION,j,-1});
@@ -236,5 +243,5 @@ Game::initailizeCards(){
 
 void
 Game::updateDisplay(){
-   display_.update((*this),players_);
+   display_((*this),players_);
 }
