@@ -25,64 +25,102 @@ Game::Game(int playerNum,const Display& d) :
                             usableCard_(Majong::EMPTY_CARD), seaCards_(), 
                             wallCards_(), display_(d)
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    for(int i =0;i<playerNum;i++){
       players_.insert(i,Player(i));
    }
    //should init display_ right? TODO
+#ifndef NDEBUG
+   END_EXCEPTION( "Game construtor" );
+#endif
 }
 
 Majong::Card
-Game::drawFromHead (int id){
+Game::drawFromHead (int id)
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    Majong::Card drawnCard = wallCards_.popFront();
    drawnCard.belong = id;
    return drawnCard;
+#ifndef NDEBUG
+   END_EXCEPTION( "Game::drawFromHead" );
+#endif
 }
 
 Majong::Card
-Game::drawFromTail (int id){
+Game::drawFromTail (int id)
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    Majong::Card drawnCard = wallCards_.popBack();
    drawnCard.belong = id;
    return drawnCard;
+#ifndef NDEBUG
+   END_EXCEPTION( "drawFromTail" );
+#endif
 }
 
 void
-Game::run() {
+Game::run()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    for(int i=0;i<4;i++){
       oneRound();
    }
    gameOver();
+#ifndef NDEBUG
+   END_EXCEPTION( "run()" );
+#endif
 }
 
 Majong::Card
-Game::getUsableCard() const {
+Game::getUsableCard() const
+{
    return usableCard_;
 }
 
 int
-Game::getCurrentPlayerId() const {
+Game::getCurrentPlayerId() const 
+{
    return currentPlayerId_;
 }
 
 int
-Game::howManyPlayers() const {
+Game::howManyPlayers() const 
+{
    return playerNum_;
 }
 
 int
-Game::getLianChuangNum() const {
+Game::getLianChuangNum() const 
+{
    return lianChuangNum_;
 }
 List<Majong::Card> 
-Game::getSeaCards() const {
+Game::getSeaCards() const 
+{
    return seaCards_;
 }
+
 List<Majong::Card>
-Game::getWallCards() const{
+Game::getWallCards() const
+{
    return wallCards_;
 }
 //-------------------- Private --------------------//
 void//one round means every player had been the dealer once
-Game::oneRound(){
+Game::oneRound()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    for(int i=0;i<4;){
       if (oneGame()){
          i++;
@@ -93,10 +131,17 @@ Game::oneRound(){
    }
    //when different orientation is implemented, should set orietation here
    //and also in oneGame(); TODO
+#ifndef NDEBUG
+   END_EXCEPTION( "oneRound()" );
+#endif
 }
 
 bool//return true if dealer changed
-Game::oneGame(){
+Game::oneGame()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    initializeCards();
    givePlayersHands();
    currentPlayerId_ = dealerId_;
@@ -125,6 +170,8 @@ Game::oneGame(){
          break;
       case NO_WIN:
          break;
+      default:
+         break;
    }
    if ( endStatus != NO_WIN && (winnerId_ != dealerId_) ){
       return true;
@@ -133,10 +180,17 @@ Game::oneGame(){
       lianChuangNum_++;
       return false;
    }
+#ifndef NDEBUG
+   END_EXCEPTION( "oneGame()" );
+#endif
 }
 
 EndOfGame
-Game::oneTurn(){
+Game::oneTurn()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    if ( usableCard_ == WIN_CARD ){
       return ONE_WINS_ALL;
    }
@@ -147,7 +201,7 @@ Game::oneTurn(){
    vector<ACTION> playerDecisions(playerNum_);
    int winCount = 0;
    for(int i =0;i<playerNum_;i++){
-      playerDecisions[i] = players_[i].getDecision((*this));
+      playerDecisions[i] = players_[i].getDecisionFromUsableCard((*this));
       if (playerDecisions[i] == ACTION_WIN){
          winCount++;
       }
@@ -187,10 +241,17 @@ Game::oneTurn(){
          }
       }
    }
+#ifndef NDEBUG
+   END_EXCEPTION( "oneTurn()" );
+#endif
 }
 
 void
-Game::givePlayersHands(){
+Game::givePlayersHands()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    for(int i =0;i<playerNum_;i++){
       List<Majong::Card> hand;
       for(int j =0;j<16;j++){
@@ -198,50 +259,81 @@ Game::givePlayersHands(){
       }
       players_[i].giveHand(hand);
    }
+#ifndef NDEBUG
+   END_EXCEPTION( "givePlayersHands()" );
+#endif
 }
 
 void
-Game::gameOver (){//TODO
+Game::gameOver ()
+{//TODO
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 /*
    End of whole Majong Game,
    shall we show statistics of each player?
 */
+#ifndef NDEBUG
+END_EXCEPTION( "gameOver()");
+#endif
 }
 
 void
-Game::updateUsableCard(Majong::Card newCard){
+Game::updateUsableCard(Majong::Card newCard)
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    usableCard_ = newCard;
    seaCards_.pushBack(newCard);
    updateDisplay();
+#ifndef NDEBUG
+   END_EXCEPTION( "updateUsableCard");
+#endif
 }
 
 void
-Game::initializeCards(){
+Game::initializeCards()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    //feed {x,y,z} as parameter only available with c++0x
    List<Majong::Card> newCards;
    for(int i =0;i<4;i++){
       for (int j=1;j<=9;j++){
-         newCards.pushBack({TYPE_MILLION,j,-1});
-         newCards.pushBack({TYPE_CIRCLE,j,-1});
-         newCards.pushBack({TYPE_STRING,j,-1});
+         newCards.pushBack(Majong::Card(TYPE_MILLION,j,-1));
+         newCards.pushBack(Majong::Card(TYPE_CIRCLE,j,-1));
+         newCards.pushBack(Majong::Card(TYPE_STRING,j,-1));
       }
-      newCards.pushBack({TYPE_N,0,-1});
-      newCards.pushBack({TYPE_S,0,-1});
-      newCards.pushBack({TYPE_E,0,-1});
-      newCards.pushBack({TYPE_W,0,-1});
-      newCards.pushBack({TYPE_M,0,-1});
-      newCards.pushBack({TYPE_RICH,0,-1});
-      newCards.pushBack({TYPE_WHITE,0,-1});
+      newCards.pushBack(Majong::Card(TYPE_N,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_S,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_E,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_W,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_M,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_RICH,0,-1));
+      newCards.pushBack(Majong::Card(TYPE_WHITE,0,-1));
    }
    for(int j=1;j<=8;j++){
-      newCards.pushBack({TYPE_FLOWER,j,-1});
+      newCards.pushBack(Majong::Card(TYPE_FLOWER,j,-1));
    }
    while(newCards.size() > 0 ){
       wallCards_.pushBack(newCards.remove(randGen(newCards.size())));
    }
+#ifndef NDEBUG
+   END_EXCEPTION( "initializeCards()");
+#endif
 }
 
 void
-Game::updateDisplay(){
+Game::updateDisplay()
+{
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
    display_((*this),players_);
+#ifndef NDEBUG
+   END_EXCEPTION( "updateDisplay()");
+#endif
 }
