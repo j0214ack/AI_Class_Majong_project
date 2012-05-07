@@ -4,70 +4,69 @@
 #include <iostream>
 using namespace std;
 
+
 void addAction (bool flag, ACTION action,List<ACTION> &actionList)
 {
     if (flag)
     {
-        actionList.pushBack(ACTION);
+        actionList.pushBack(action);
     }
     return;
 }
 
 void Player::giveHand(const List<Majong::Card> &handCard)
 {
-    handHidden_ = List(handCard);
+    handHidden_ = List<Majong::Card>(handCard);
     return;
 };
 
-Majong::Card Player::doAction(ACTION action)
+Majong::Card Player::doAction(ACTION action, const Game &game)
 {
     switch (action)
     {
         case ACTION_EAT_FIRST:
-            return doEatFirst();
+            return doEatFirst( game );
         case ACTION_EAT_MIDDLE:
-            return doEatMiddle();
+            return doEatMiddle( game );
         case ACTION_EAT_LAST:
-            return doEatLast();
+            return doEatLast( game );
         case ACTION_BON:
-            return doBon();
+            return doBon( game );
         case ACTION_LIGHT_GUN:
-            return doLightGun();
+            return doLightGun( game );
         case ACTION_DARK_GUN:
-            return doDarkGun();
+            return doDarkGun( game );
         case ACTION_FLOWER_GUN:
-            return doFlowerGun();
+            return doFlowerGun( game );
         case ACTION_LATE_GUN:
-            return doLateGun();
+            return doLateGun( game );
         case ACTION_DRAW:
-            return doDraw();
-        case ACTION_DRAW:
-            return doDraw();
+            return doDraw( game );
         case ACTION_WIN:
-            return doWin();
+            return doWin( game );
         case ACTION_PASS:
-            return doPass();
+            return doPass( game );
         case ACTION_DISCARD_CARD:
-            return decideDiscardCard();
+            return decideDiscardCard( game );
         default:
-            return ERROR_CARD;
+			throw "Error";
     }
 };
 
-List<ACTION> player::getLegalActionForUsableCard ( const Game &game ) const
+List<ACTION> Player::getLegalActionForUsableCard ( const Game &game ) const
 {
     List<ACTION> actionList;
     addAction(isEatableFirst(game),ACTION_EAT_FIRST,actionList);
     addAction(isEatableMiddle(game),ACTION_EAT_MIDDLE,actionList);
     addAction(isEatableLast(game),ACTION_EAT_LAST,actionList);
     addAction(isBonable(game),ACTION_BON,actionList);
-    addAction(isLightGunable(game),ACTION_GUN,actionList);
+    addAction(isLightGunable(game),ACTION_LIGHT_GUN,actionList);
     addAction(isPassable(game),ACTION_PASS,actionList);
     addAction(isWinableForUsableCard(game),ACTION_WIN,actionList);
     return actionList;
 };
 
-List<ACTION> player::getLegalActionForDrawCard () const
+List<ACTION> Player::getLegalActionForDrawCard () const
 {
     List<ACTION> actionList;
     addAction(isDarkGunable(),ACTION_DARK_GUN,actionList);
@@ -78,7 +77,7 @@ List<ACTION> player::getLegalActionForDrawCard () const
     return actionList;
 }
 
-int Player::countCard (const Majong::Card &card, const List<Majong::Card> &cardList) const
+int Player::countCard ( const List<Majong::Card> &cardList, const Majong::Card &card ) const
 {
     List<Majong::Card>::iterator it;
     int count = 0;
@@ -97,20 +96,28 @@ bool Player::isEatableFirst (const Game &game) const
     Majong::Card currentCard = game.getUsableCard();
     Majong::Card middleCard = Majong::Card(currentCard.type,currentCard.num + 1, id_ );
     Majong::Card lastCard = Majong::Card(currentCard.type,currentCard.num + 2, id_ );
-    int middleCardCount = countCard(middleCard,handHidden_);
-    int lastCardCount = countCard(lastCard,handHidden_);
+    int middleCardCount = countCard(handHidden_,middleCard);
+    int lastCardCount = countCard(handHidden_,lastCard);
     return (middleCardCount && lastCardCount )? true: false;
 
 };
 
 bool Player::isEatableMiddle (const Game &game) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
     Majong::Card currentCard = game.getUsableCard();
     Majong::Card firstCard = Majong::Card(currentCard.type,currentCard.num - 1 , id_ );
     Majong::Card lastCard = Majong::Card(currentCard.type,currentCard.num + 1, id_ );
-    int firstCardCount = countCard(firstCard,handHidden_);
-    int lastCardCount = countCard(lastCard,handHidden_);
+	if ( currentCard.num > 10 )
+		throw IndexError( "currentCard.num > 10", currentCard.num, 10 );
+    int firstCardCount = countCard(handHidden_, firstCard);
+    int lastCardCount = countCard(handHidden_, lastCard);
     return (firstCardCount && lastCardCount)? true : false;
+#ifndef NDEBUG
+	END_EXCEPTION( "Player::isEatableLast ( const Game & )" );
+#endif
 };
 
 bool Player::isEatableLast (const Game &game) const
@@ -118,38 +125,38 @@ bool Player::isEatableLast (const Game &game) const
     Majong::Card currentCard = game.getUsableCard();
     Majong::Card firstCard = Majong::Card(currentCard.type,currentCard.num - 2 , id_ );
     Majong::Card middleCard = Majong::Card(currentCard.type,currentCard.num - 1 , id_ );
-    int firstCardCount = countCard(firstCard,handHidden_);
-    int middleCardCount = countCard(middleCard,handHidden_);
+    int firstCardCount = countCard(handHidden_, firstCard);
+    int middleCardCount = countCard(handHidden_, middleCard);
     return (firstCardCount && middleCardCount)? true : false;
 };
 
 bool Player::isBonable (const Game &game) const
 {
     Majong::Card currentCard = game.getUsableCard();
-    List<Majong::Card> iterator it;
-    int currentCardCount = countCard(currentCard,handHidden_);
-    return (currentCard>=2)?true:false;
+    List<Majong::Card>::iterator it;
+    int currentCardCount = countCard(handHidden_, currentCard);
+    return (currentCardCount>=2)?true:false;
 };
 
 bool Player::isLightGunable (const Game &game) const
 {
     Majong::Card currentCard = game.getUsableCard();
-    if (currentCard.belong == id - 1 || currentCard.belong == id -1 + PLAYER_NUM ) // Card is from the up player
+    if (currentCard.belong == id_ - 1 || currentCard.belong == id_ -1 + game.howManyPlayers() ) // Card is from the up player
     {
         return false;
     }
     else
     {
-        List<Majong::Card> iterator it;
-        int currentCardCount = countCard(currentCard,handHidden_);
-        return (currentCard>=3)?true:false;
+        List<Majong::Card>::iterator it;
+        int currentCardCount = countCard(handHidden_, currentCard);
+        return (currentCardCount>=3)?true:false;
     }
 };
 
-bool Player::isDarkGunable (const Game &game) const
+bool Player::isDarkGunable () const
 {
     List<Majong::Card> tempList = List<Majong::Card>(handHidden_);
-    List<Majong::Card> listIt;
+    List<Majong::Card>::iterator listIt;
     while (!tempList.isEmpty())
     {
         Majong::Card currentCard = tempList.popFront();
@@ -158,7 +165,7 @@ bool Player::isDarkGunable (const Game &game) const
         {
             if (currentCard==*listIt)
             {
-                tempList.erase(*listIt);
+                tempList.remove(listIt);
                 num++;
             }
             if (num==3)
@@ -173,9 +180,9 @@ bool Player::isDarkGunable (const Game &game) const
 bool Player::isFlowerGunable() const
 {
     List<Majong::Card>::iterator listIt;
-    for (listIt = handHidden_.begin(); list!=handHidden_.end(); ++listIt)
+    for (listIt = handHidden_.begin(); listIt!=handHidden_.end(); ++listIt)
     {
-        if (listIt->type==TYPE.FLOWER)
+        if (listIt->type==TYPE_FLOWER)
         {
             return true;
         }
@@ -194,7 +201,7 @@ bool Player::isLateGunable() const
             if ((*(listIt-1) == *listIt) && (*(listIt+1) == *listIt))
             {
                 tempList.pushBack(*listIt);
-                if(countCard(*listIt,handHidden_)>0)
+                if(countCard(handHidden_,*listIt)>0)
                 {
                     return true;
                 }
@@ -208,7 +215,7 @@ bool Player::isPassable (const Game &game) const
 {
     Majong::Card currentCard = game.getUsableCard();
     // int playerNum = ???
-    if (currentCard.belong==id_-1 || currentCard.belong==id_-1 + PLAYER_NUM)
+    if (currentCard.belong==id_-1 || currentCard.belong==id_-1 + game.howManyPlayers())
     {
         return false;
     }
@@ -218,7 +225,7 @@ bool Player::isPassable (const Game &game) const
     }
 };
 
-List<Majong::Card> Player::getPossibleGan(List<Majong::Card> &cardList) const
+List<Majong::Card> Player::getPossibleGan(const List<Majong::Card> &cardList) const
 {
     List<Majong::Card> ganList;
     List<Majong::Card> tempList = List<Majong::Card>(cardList);
@@ -233,7 +240,7 @@ List<Majong::Card> Player::getPossibleGan(List<Majong::Card> &cardList) const
             if (*listIt==tempCard)
             {
                 count++;
-                tempList.erase(listIt);
+                tempList.remove(listIt);
             }
         }
         if (count>=1)
@@ -252,10 +259,10 @@ bool Player::isWinableForUsableCard (const Game &game) const
 
 bool Player::isWinableForDrawCard() const
 {
-    return isWinable(cardFromDraw);
+    return isWinable();
 };
 
-bool Player::isWinable (const Majong::Card &card) const
+bool Player::isWinable (const Majong::Card &card)  const
 {
     List<Majong::Card> tempList = List<Majong::Card>(handHidden_);
     tempList.pushBack(card);
@@ -281,11 +288,35 @@ bool Player::isWinable (const Majong::Card &card) const
     return false;
 };
 
-bool Player::takeCard(const Majong::Card card,List<Majong::Card> &cardList,int num)
+bool Player::isWinable () const
+{
+    List<Majong::Card> tempList = List<Majong::Card>(handHidden_);
+    List<Majong::Card> ganList = getPossibleGan(tempList);
+    bool flag = false;
+    List<Majong::Card>::iterator listIt;
+    for (listIt=ganList.begin();listIt!=ganList.end();++listIt)
+    {
+        List<Majong::Card> tempList2 = List<Majong::Card>(tempList);
+        if (takeCard(*listIt,tempList2,2))
+        {
+            flag = flag || isComplete(tempList2);
+            if (flag)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            cout<<"isWinable has a bug !!!"<<endl;
+        }
+    }
+    return false;
+};
+bool Player::takeCard(const Majong::Card &card,List<Majong::Card> &cardList,const int &num) const
 {
     List<Majong::Card>::iterator listIt;
-    int count = countCard(card,cardList);
-    if (card<num)
+    int count = countCard(cardList,card);
+    if (count<num)
     {
         return false;
     }
@@ -295,7 +326,7 @@ bool Player::takeCard(const Majong::Card card,List<Majong::Card> &cardList,int n
         {
             if (*listIt==card)
             {
-                cardList.erase(listIt);
+                cardList.remove(listIt);
                 num--;
                 if (num==0)
                 {
@@ -373,7 +404,7 @@ bool Player::isComplete(const List<Majong::Card> &cardList)
 bool Player::isDrawable (const Game &game) const
 {
     Majong::Card currentCard = game.getUsableCard();
-    return (currentCard.belong==id-1 || currentCard.belong==id-1+PLAYER_NUM)?false:true;
+    return (currentCard.belong==id_-1 || currentCard.belong==id_-1+game.howManyPlayers())?false:true;
 };
 
 void Player::takeCardFromHandHidden(const Majong::Card card)
@@ -384,7 +415,7 @@ void Player::takeCardFromHandHidden(const Majong::Card card)
     {
         if (*ListIt==card)
         {
-            handHidden_.erase(ListIt);
+            handHidden_.remove(ListIt);
             flag = true;
             break;
         }
@@ -474,7 +505,7 @@ Majong::Card Player::doDarkGun (const Game &game)
         {
             if (currentCard==*listIt)
             {
-                tempList.erase(*listIt);
+                tempList.remove(listIt);
                 num++;
             }
             if (num==3)
@@ -551,7 +582,7 @@ Majong::Card Player::doPass ( const Game &game )
 
 Majong::Card Player::doWin ( const Game &game )
 {
-    return WIN_CARD;
+    return Majong::WIN_CARD;
 };
 
 Majong::Card Player::doDraw ( Game &game )

@@ -16,6 +16,9 @@ using std::endl;
 #include "Player.h"
 #include "Display.h"
 
+#include "macro.h"
+#include "ErrorMessage.h"
+
 #define GRID_WIDTH  3
 #define GRID_HEIGHT 5
 #define GRID_HORIZONTAL 12
@@ -41,6 +44,9 @@ Display::operator() ( const Game &game, const List<Player>& players ) const
 void 
 Display::showPlayer ( const Player &player ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	cout << "==> Player " << player.id_ << " hand revealed card :\n";
 	for ( unsigned i = 0; i < GRID_HEIGHT; i++ ) {
 		for ( List<Majong::Card>::iterator iter = player.handRevealed_.begin();
@@ -54,13 +60,18 @@ Display::showPlayer ( const Player &player ) const
 										   iter != player.handRevealed_.end(); iter++ ) 
 			showCardDiagram( *iter, i );
 		cout << "\n";
-	}
-								
+	}								
+#ifndef NDEBUG
+	END_EXCEPTION( "Display::showPlayer ( const Player & )" );
+#endif
 }
 
 void 
 Display::showSeaCards  ( const List<Majong::Card> &seaCards  ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	cout << "==> Sea card  :\n";
 	for ( unsigned i = 0; i < seaCards.size(); i += GRID_HORIZONTAL )
 		for ( unsigned j = 0; j < GRID_HEIGHT; j++ ) {
@@ -68,11 +79,17 @@ Display::showSeaCards  ( const List<Majong::Card> &seaCards  ) const
 				showCardDiagram( seaCards[k], j );
 			cout << "\n";
 		}
+#ifndef NDEBUG
+	END_EXCEPTION( "Display::showSeaCards ( const List<Majong::Card> & )" );
+#endif
 }
 
 void 
 Display::showWallCards ( const List<Majong::Card> &wallCards ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	cout << "==> Wall card  :\n";
 	for ( unsigned i = 0; i < wallCards.size(); i += GRID_HORIZONTAL )
 		for ( unsigned j = 0; j < GRID_HEIGHT; j++ ) {
@@ -80,21 +97,33 @@ Display::showWallCards ( const List<Majong::Card> &wallCards ) const
 				showCardDiagram( wallCards[k], j );
 			cout << "\n";
 		}
+#ifndef NDEBUG
+	END_EXCEPTION( "Display::showWallCards ( const List<Majong::Card> & )" );
+#endif
 }
 
 void 
 Display::showPrompt ( const Majong::Card &usableCard ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	cout << "==> Current usable card is :\n";
 	for ( unsigned i = 0; i < GRID_HEIGHT; i++ )
 		showCardDiagram( usableCard, i );
 	cout << ">>> Do what action ( Eat/Bon/Gun/Win/Draw/Pass ) ?\n"
 			">>> ";
+#ifndef NDEBUG
+	END_EXCEPTION( "Display::showPrompt ( const Majong::Card & )" );
+#endif
 }
 
 void 
 Display::showCardDiagram ( const Majong::Card &card, const unsigned &row ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	if ( row == 0 || row == GRID_HEIGHT - 1 ) {
 		SHOW_CARD_TOP();
 		return;
@@ -229,11 +258,17 @@ Display::showCardDiagram ( const Majong::Card &card, const unsigned &row ) const
 			throw "Invalid card type in Display::showCardDiagram() !\n";
 			break;
 	}
+#ifndef NDEBUG
+END_EXCEPTION( "Display::showCardDiagram ( const Majong::Card &, const unsigned & )" );
+#endif
 }
 
 void
 Display::showCardWord ( const char *word ) const
 {
+#ifndef NDEBUG
+START_EXCEPTION
+#endif
 	cout << "| ";
 	for ( unsigned i = 0; i < GRID_WIDTH / 3 - 1; i++ ) 
 		cout << " ";
@@ -241,4 +276,7 @@ Display::showCardWord ( const char *word ) const
 	for ( unsigned i = 0; i < GRID_WIDTH / 3 - 1; i++ ) 
 		cout << " ";
 	cout << " |";
+#ifndef NDEBUG
+	END_EXCEPTION( "Display::showCardWord ( const char * )" );
+#endif
 }

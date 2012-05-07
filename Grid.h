@@ -26,17 +26,22 @@ namespace Majong
 {
    struct Card
    {
-    public:
+		public:
+
+			Card () {}
+
+			Card ( TYPE t, const char &n, const char &b ) : type( t ), num( n ), belong( b ) {}
       TYPE type;
       char num,
            belong;
       bool operator==(const Card& rhs){
-         return (type==rhs.type && num== rhs.num &&belong==rhs.belong);
+         return (type==rhs.type && num== rhs.num );
       }
    };
 
-   const Majong::Card EMPTY_CARD = {DUMMY_END,-1,-1};
-   const Majong::Card WIN_CARD = {DUMMY_END,88,88};
+   const Majong::Card PASS_CARD = Majong::Card( DUMMY_END, 100, 100 );
+   const Majong::Card EMPTY_CARD = Majong::Card( DUMMY_END,-1,-1 );
+   const Majong::Card WIN_CARD = Majong::Card( DUMMY_END,88,88 );
 };
 #endif
 

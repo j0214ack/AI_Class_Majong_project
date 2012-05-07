@@ -12,8 +12,6 @@
 
 #include "Grid.h"
 #include "List.h"
-#include "Game.h"
-#include "Player.h"
 class Game;
 class Player;
 using user::List;

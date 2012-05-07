@@ -191,7 +191,7 @@ Game::oneTurn()
 #ifndef NDEBUG
 START_EXCEPTION
 #endif
-   if ( usableCard_ == WIN_CARD ){
+   if ( usableCard_ == Majong::WIN_CARD ){
       return ONE_WINS_ALL;
    }
    if ( wallCards_.size() <= 16 ){
@@ -207,12 +207,12 @@ START_EXCEPTION
       }
    }
    if (winCount < 1){
-      ACTION priorityAction = max_element(playerDecisions.begin(),playerDecisions.end(),compareActions);
+      ACTION priorityAction = *max_element(playerDecisions.begin(),playerDecisions.end(),compareActions);
       for(int i=0;i<playerNum_;i++){
          if (playerDecisions[i] == priorityAction ){
             currentPlayerId_ = i;
             updateUsableCard(players_[i].doAction(priorityAction));
-            if ( usableCard_ == WIN_CARD ){
+            if ( usableCard_ == Majong::WIN_CARD ){
                return ONE_WINS_ALL;
             }
             else return NOT_YET;
@@ -241,6 +241,7 @@ START_EXCEPTION
          }
       }
    }
+   throw 123;
 #ifndef NDEBUG
    END_EXCEPTION( "oneTurn()" );
 #endif
@@ -337,3 +338,4 @@ START_EXCEPTION
    END_EXCEPTION( "updateDisplay()");
 #endif
 }
+

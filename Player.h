@@ -34,15 +34,12 @@ class Player
    friend class Display;
 	public :
 
-		Player( int id ):id_(id),winCount(0),loseCount(0)
-		{
-            theCardFromDraw = Majong::EMPTY_CARD;
-		}
+		Player( int id ):id_(id),winCount(0),loseCount(0) {}
 
 		ACTION getDecisionFromUsableCard ( const Game & ) const;
 		ACTION getDecisionFromDrawCard ( const Game & ) const;
 
-		Majong::Card doAction ( ACTION );
+		Majong::Card doAction ( ACTION, const Game & );
 
         void giveHand(const List<Majong::Card>& hand);
 
@@ -60,11 +57,11 @@ class Player
 						   handHidden_;
 		int	id_;
       int winCount;// = 0;
-      int loseCount;// = 0;
+      int loseCount;// = 0&;
 
       Majong::Card theCardFromDraw;
       //-----Functions----------//
-        int countCard (const Majong::Card &card,const List<Majong::Card> &) const;
+        int countCard ( const List<Majong::Card> &, const Majong::Card &card ) const;
 		bool isEatableFirst ( const Game & ) const;
 		bool isEatableMiddle ( const Game & ) const;
 		bool isEatableLast ( const Game & ) const;
@@ -73,9 +70,10 @@ class Player
 		bool isDarkGunable () const;
 		bool isFlowerGunable () const;
 		bool isLateGunable () const;
-		bool isWinable(const Majong::Card &) const;
-		bool isWinableForDrawCard() const;
-		bool isWinableForUsableCard (const Game & ) const;
+		bool isWinable(const Majong::Card &)const ;
+		bool isWinable() const;
+		bool isWinableForDrawCard()const ;
+		bool isWinableForUsableCard (const Game & )const ;
 		bool isPassable( const Game & ) const;
 		bool isDrawable( const Game & ) const;
 
@@ -95,9 +93,9 @@ class Player
         Majong::Card makeDecisionForDarkGun(const Game &game,List<Majong::Card> &); //AI
         ACTION makeDecisionForUsableCard ( Game &, List<ACTION> &); // AI
         ACTION makeDecisionForDrawCard ( Game &, List<ACTION> &); // AI
-		Majong::Card decideDiscardCard ( Game & );  // AI
+		Majong::Card decideDiscardCard ( const Game & );  // AI
         // void receiveCard ( Game & );
-		void takeCard(Majong::Card,List<Majong::Card> &,int num);
+		bool takeCard(const Majong::Card &,List<Majong::Card> &,const int &num)const;
 		bool isComplete(const List<Majong::Card> &);
         void takeCardFromHandHidden (Majong::Card card);
 		List<ACTION> getLegalActionForUsableCard ( const Game & ) const;

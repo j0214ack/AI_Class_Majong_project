@@ -1,26 +1,28 @@
-/***************************************************
-** File: main.cpp
-** Function: Running the game 'Majong''
-** Author: 
-** Version:
-** Last Modified:
-** Copyright:
-****************************************************/
+/*=================================================
+ File     : main.cpp
+ Function : run game
+ Author   : 
+ Version  : 1.0.0
+ Last Modified : Sat May  5 23:47:54 CST 2012
+ Copyright:
+ ==================================================*/
 
 // Import atoi()
 #include <cstdlib>
 
 #include "Game.h"
+#include "macro.h"
 
-int main( int argc, char *argv[] ) 
+int main() 
 {
 
-START_EXCEPTION
-   Display display;
+START_MAIN_EXCEPTION
+
+    Display display;
 	Game game(2,display);
 	game.run();
 
-END_EXCEPTION
+END_MAIN_EXCEPTION
 	
 	return MAJONG_SUCCESS;
 } 
